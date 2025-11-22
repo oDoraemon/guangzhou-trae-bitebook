@@ -56,7 +56,12 @@ class UploadService:
             img_bytes = pix.tobytes("jpeg")
             cover_file = f"{sha[:16]}.jpg"
             cover_path = covers_dir / cover_file
+            front = files_dir.parent.parent / "front" / "public" / "covers"
+            print(front)
+            cover_path_fe =  front / cover_file
             with cover_path.open("wb") as fimg:
+                fimg.write(img_bytes)
+            with cover_path_fe.open("wb") as fimg:
                 fimg.write(img_bytes)
             cover_mime = "image/jpeg"
             cover_w = pix.width
