@@ -8,3 +8,10 @@ class BookMetaRepository:
         db.refresh(meta)
         return meta
 
+    def list_by_book(self, db: Session, book_id: int):
+        return db.query(BookMeta).filter(BookMeta.book_id == book_id).all()
+
+    def delete_many(self, db: Session, metas):
+        for m in metas:
+            db.delete(m)
+        db.commit()

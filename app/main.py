@@ -5,11 +5,14 @@ from pathlib import Path
 from app.api.books import router as books_router
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
-from app.db import SessionLocal, engine
+from app.db import SessionLocal, engine, Base
 from app.model.book import Book
 from app.api.upload import router as upload_router
 from app.config import get_settings
 from sqlalchemy import text
+from app.model.task_log import TaskLog
+from app.model.book_meta import BookMeta
+from app.model.doc_text import DocText
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, docs_url=None, redoc_url=None)
@@ -48,6 +51,7 @@ app.include_router(upload_router)
 
 @app.on_event("startup")
 def seed_data():
+    Base.metadata.create_all(bind=engine)
     with engine.begin() as conn:
         cols = [row[1] for row in conn.execute(text("PRAGMA table_info('book_meta')"))]
         for name, ddl in [("cover_file", "TEXT"), ("cover_mime", "TEXT"), ("cover_width", "INTEGER"), ("cover_height", "INTEGER")]:

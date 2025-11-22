@@ -5,12 +5,14 @@ from app.db import get_db, Base, engine
 from app.schema.book import BookCreate, BookUpdate, BookRead
 from app.service.book_service import BookService
 from app.repository.book_meta_queries import get_latest_by_book_id
+from app.repository.task_log_repository import TaskLogRepository
 
 router = APIRouter(prefix="/api/books", tags=["books"])
 
 Base.metadata.create_all(bind=engine)
 
 service = BookService()
+task_repo = TaskLogRepository()
 
 @router.post("/", response_model=BookRead, status_code=status.HTTP_201_CREATED)
 def create_book(payload: BookCreate, db: Session = Depends(get_db)):
@@ -29,6 +31,10 @@ def get_book(book_id: int, db: Session = Depends(get_db)):
     meta = get_latest_by_book_id(db, book.id)
     if meta and meta.cover_file:
         data["cover_url"] = f"/covers/{meta.cover_file}"
+    t = task_repo.latest_by_book(db, book.id)
+    if t:
+        data["task_status"] = t.status
+        data["task_pages_count"] = t.pages_count
     return data
 
 @router.get("/")
@@ -39,6 +45,10 @@ def list_books(q: Optional[str] = None, page: int = 1, page_size: int = 20, db: 
         meta = get_latest_by_book_id(db, b.id)
         if meta and meta.cover_file:
             d["cover_url"] = f"/covers/{meta.cover_file}"
+        t = task_repo.latest_by_book(db, b.id)
+        if t:
+            d["task_status"] = t.status
+            d["task_pages_count"] = t.pages_count
         return d
     return {"items": [as_dict(i) for i in items], "total": total, "page": page, "page_size": page_size}
 

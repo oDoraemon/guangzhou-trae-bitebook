@@ -21,6 +21,8 @@ class BookUpdate(BaseModel):
 class BookRead(BookBase):
     id: int
     cover_url: Optional[str] = None
+    task_status: Optional[str] = None
+    task_pages_count: Optional[int] = None
 
     class Config:
         from_attributes = True

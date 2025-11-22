@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { fetchBook } from '../services/books'
 import type { Book } from '../types/book'
 import placeholder from '../assets/book-placeholder.svg'
+import { API_BASE } from '../services/api'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -36,8 +38,22 @@ const previewList = computed(() => {
   const cover = book.value?.cover_url
   const arr = [...list]
   if (cover) arr.unshift(cover)
-  return arr.length ? arr : [placeholder]
+return arr.length ? arr : [placeholder]
 })
+
+async function onDelete() {
+  if (!book.value) return
+  const ok = window.confirm('确认删除该图书及相关资源？')
+  if (!ok) return
+  try {
+    const res = await fetch(`${API_BASE}/api/books/${book.value.id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error(await res.text())
+    ElMessage.success('删除成功')
+    router.push('/books')
+  } catch (e: any) {
+    ElMessage.error(e?.message || '删除失败')
+  }
+}
 </script>
 
 <template>
@@ -58,6 +74,12 @@ const previewList = computed(() => {
           </div>
           <div class="right">
             <el-card>
+              <template #header>
+                <div class="card-header">
+                  <span>书籍信息</span>
+                  <el-button type="danger" size="small" @click="onDelete">删除</el-button>
+                </div>
+              </template>
               <el-descriptions title="基本信息" :column="1" border>
                 <el-descriptions-item label="书名">{{ book.title }}</el-descriptions-item>
                 <el-descriptions-item label="作者">{{ book.author }}</el-descriptions-item>
@@ -65,6 +87,12 @@ const previewList = computed(() => {
                 <el-descriptions-item label="ISBN">{{ book.isbn ?? '-' }}</el-descriptions-item>
                 <el-descriptions-item label="简介">{{ book.description ?? '-' }}</el-descriptions-item>
                 <el-descriptions-item label="ID">{{ book.id }}</el-descriptions-item>
+                <el-descriptions-item label="处理任务">
+                  <el-tag v-if="book.task_status" :type="book.task_status==='done' ? 'success' : (book.task_status==='failed' ? 'danger' : 'warning')">
+                    {{ book.task_status }}
+                  </el-tag>
+                  <span v-if="book.task_pages_count">（页数：{{ book.task_pages_count }}）</span>
+                </el-descriptions-item>
               </el-descriptions>
             </el-card>
           </div>
@@ -88,6 +116,7 @@ const previewList = computed(() => {
 .cover { width: 100%; height: 320px; object-fit: cover; border-radius: 6px; }
 .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
 .thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
 
 @media (max-width: 960px) {
   .detail-grid { grid-template-columns: 60% 40%; gap: 12px; }
