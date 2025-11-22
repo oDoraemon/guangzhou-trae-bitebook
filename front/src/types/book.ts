@@ -8,6 +8,8 @@ export interface Book {
   isbn?: string | null
   cover_url?: string | null
   preview_images?: string[] | null
+  task_status?: string | null
+  task_pages_count?: number | null
 }
 
 export interface BookListResponse {
