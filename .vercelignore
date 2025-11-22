@@ -8,8 +8,25 @@
 # Ignore local build outputs; Vercel will build in the cloud
 front/dist
 
-# Backend files need to be included for API functions
+# Python build and cache
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv/
+
+# Local data files
 *.db
+*.pdf
+*.jpg
+
+# Backend runtime artifacts that should not upload
+app/files/
+app/covers/
+
+# Misc
 uv.lock
 .python-version
 README.md
