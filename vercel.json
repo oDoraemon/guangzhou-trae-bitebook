@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "front/package.json",
       "use": "@vercel/static-build",
       "config": { "distDir": "front/dist" }
@@ -9,18 +13,6 @@
   ],
   "installCommand": "cd front && npm ci",
   "buildCommand": "cd front && npm run build",
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11",
-      "memory": 1024,
-      "maxDuration": 10,
-      "includeFiles": [
-        "app/**",
-        "app/static/**",
-        "app/covers/**"
-      ]
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/(.*)", "destination": "/index.html" }
