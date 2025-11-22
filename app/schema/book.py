@@ -5,6 +5,7 @@ class BookBase(BaseModel):
     title: str
     author: str
     description: Optional[str] = None
+    summary: Optional[str] = None
     published_year: Optional[int] = None
     isbn: Optional[str] = None
 

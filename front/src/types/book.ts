@@ -3,6 +3,7 @@ export interface Book {
   title: string
   author: string
   description?: string | null
+  summary?: string | null
   published_year?: number | null
   isbn?: string | null
   cover_url?: string | null

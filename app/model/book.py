@@ -12,8 +12,8 @@ class Book(Base):
     title = Column(String(255), nullable=False, index=True)
     author = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
     published_year = Column(Integer, nullable=True)
     isbn = Column(String(32), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-

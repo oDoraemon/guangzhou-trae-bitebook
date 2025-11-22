@@ -97,6 +97,7 @@ async function onAnalyze() {
                 <el-descriptions-item label="出版年">{{ book.published_year ?? '-' }}</el-descriptions-item>
                 <el-descriptions-item label="ISBN">{{ book.isbn ?? '-' }}</el-descriptions-item>
                 <el-descriptions-item label="简介">{{ book.description ?? '-' }}</el-descriptions-item>
+                <el-descriptions-item label="摘要">{{ book.summary ?? '-' }}</el-descriptions-item>
                 <el-descriptions-item label="ID">{{ book.id }}</el-descriptions-item>
                 <el-descriptions-item label="处理任务">
                   <el-tag v-if="book.task_status" :type="book.task_status==='done' ? 'success' : (book.task_status==='failed' ? 'danger' : 'warning')">

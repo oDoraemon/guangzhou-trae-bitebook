@@ -149,3 +149,38 @@ class TaskService:
             self.repo.update(db, task, {"status": "done", "finished_at": datetime.utcnow(), "pages_count": None})
         except Exception as e:
             self.repo.update(db, task, {"status": "failed", "finished_at": datetime.utcnow(), "message": str(e)})
+
+    def queue_summarize_book(self, db: Session, book_id: int, file_path: str) -> TaskLog:
+        t = TaskLog(book_id=book_id, task_type="summarize", status="queued", message=None, file_name=Path(file_path).name, output_dir="")
+        return self.repo.create(db, t)
+
+    def run_summarize_book(self, db: Session, task_id: int, files_dir: Path):
+        from app.service.ai_client import ask_summary
+        from app.model.book import Book
+        task = self.repo.get(db, task_id)
+        if not task:
+            return
+        try:
+            task = self.repo.update(db, task, {"status": "running", "started_at": datetime.utcnow()})
+            src = Path(files_dir) / task.file_name
+            text_buf = ""
+            try:
+                doc = fitz.open(str(src))
+                pages = min(doc.page_count, 8)
+                parts = []
+                for i in range(pages):
+                    p = doc.load_page(i)
+                    parts.append(p.get_text("text"))
+                text_buf = "\n".join(parts)
+            except Exception:
+                text_buf = ""
+            summary = ask_summary(text_buf, 200)
+            book = db.get(Book, task.book_id)
+            if book:
+                book.summary = summary
+                db.add(book)
+                db.commit()
+                db.refresh(book)
+            self.repo.update(db, task, {"status": "done", "finished_at": datetime.utcnow()})
+        except Exception as e:
+            self.repo.update(db, task, {"status": "failed", "finished_at": datetime.utcnow(), "message": str(e)})

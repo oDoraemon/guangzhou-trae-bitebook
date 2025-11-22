@@ -145,3 +145,26 @@ def ask_ai(book_id: int, db: Session, max_rounds: int = 6) -> List[Dict[str, Any
         return local_fallback()
     except Exception:
         return local_fallback()
+
+def ask_summary(text: str, target_len: int = 200) -> str:
+    api_key = os.getenv("DASHSCOPE_API_KEY")
+    content = (text or "").strip()
+    if not content:
+        return ""
+    prompt = f"请用约{target_len}字中文总结以下内容的核心信息：\n\n" + content[:3000]
+    if not api_key:
+        s = content[:target_len*2]
+        return s[:target_len]
+    try:
+        import dashscope
+        resp = dashscope.Generation.call(
+            api_key=api_key,
+            model="qwen-plus",
+            messages=[{"role": "user", "content": prompt}],
+            result_format="message",
+        )
+        msg = resp.output.choices[0].message
+        return (msg.get("content") or "").strip()
+    except Exception:
+        s = content[:target_len*2]
+        return s[:target_len]

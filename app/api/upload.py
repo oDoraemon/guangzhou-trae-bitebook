@@ -34,6 +34,7 @@ async def upload_book(
         book, meta = service.upload_book(db, file, book_data, files_dir)
         out_dir = files_dir / Path(meta.file_name).stem
         task = task_service.queue_split_pdf(db, book.id, Path(meta.file_path).name, str(out_dir), out_dir)
+        tsum = task_service.queue_summarize_book(db, book.id, Path(meta.file_path).name)
         if background_tasks is not None:
             from app.db import SessionLocal
             from app.config import get_settings as _get_settings
@@ -44,6 +45,13 @@ async def upload_book(
                 finally:
                     s.close()
             background_tasks.add_task(_runner, task.id)
+            def _runner_sum(tid: int):
+                s = SessionLocal()
+                try:
+                    task_service.run_summarize_book(s, tid, _get_settings().files_dir)
+                finally:
+                    s.close()
+            background_tasks.add_task(_runner_sum, tsum.id)
         return {"book": BookRead.model_validate(book).model_dump(), "meta": BookMetaRead.model_validate(meta)}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

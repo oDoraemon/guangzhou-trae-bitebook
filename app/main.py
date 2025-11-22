@@ -56,6 +56,9 @@ app.include_router(upload_router)
 def seed_data():
     Base.metadata.create_all(bind=engine)
     with engine.begin() as conn:
+        cols_b = [row[1] for row in conn.execute(text("PRAGMA table_info('books')"))]
+        if 'summary' not in cols_b:
+            conn.execute(text("ALTER TABLE books ADD COLUMN summary TEXT"))
         cols = [row[1] for row in conn.execute(text("PRAGMA table_info('book_meta')"))]
         for name, ddl in [("cover_file", "TEXT"), ("cover_mime", "TEXT"), ("cover_width", "INTEGER"), ("cover_height", "INTEGER")]:
             if name not in cols:
@@ -64,24 +67,3 @@ def seed_data():
         for name, ddl in [("bbox_x", "REAL"), ("bbox_y", "REAL"), ("bbox_w", "REAL"), ("bbox_h", "REAL")]:
             if name not in cols_dt:
                 conn.execute(text(f"ALTER TABLE doc_text ADD COLUMN {name} {ddl}"))
-    db = SessionLocal()
-    try:
-        exists = db.execute(select(Book)).scalars().first()
-        if not exists:
-            samples = [
-                Book(title="The Little Prince", author="Antoine de Saint-Exupéry", published_year=1943, description="A pilot meets a prince from another planet."),
-                Book(title="Alice's Adventures in Wonderland", author="Lewis Carroll", published_year=1865, description="Alice falls into a fantastical world."),
-                Book(title="Peter Pan", author="J. M. Barrie", published_year=1911, description="A boy who never grows up."),
-                Book(title="Charlotte's Web", author="E. B. White", published_year=1952, description="Friendship between a pig and a spider."),
-                Book(title="Winnie-the-Pooh", author="A. A. Milne", published_year=1926, description="Adventures in the Hundred Acre Wood."),
-                Book(title="The Secret Garden", author="Frances Hodgson Burnett", published_year=1911, description="A hidden garden transforms lives."),
-                Book(title="Pippi Longstocking", author="Astrid Lindgren", published_year=1945, description="The strongest girl in the world."),
-                Book(title="Matilda", author="Roald Dahl", published_year=1988, description="A brilliant girl with telekinetic powers."),
-                Book(title="The Lion, the Witch and the Wardrobe", author="C. S. Lewis", published_year=1950, description="Children enter the world of Narnia."),
-                Book(title="Harry Potter and the Philosopher's Stone", author="J. K. Rowling", published_year=1997, description="A boy discovers he is a wizard."),
-            ]
-            for b in samples:
-                db.add(b)
-            db.commit()
-    finally:
-        db.close()
