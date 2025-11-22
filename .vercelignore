@@ -1,7 +1,18 @@
-node_modules
-build
-dist
-.git
-.trae
-.log
-.figma
+# Exclude dependencies and local artifacts from upload
+**/node_modules
+**/.cache
+**/.vite
+**/.vscode
+**/.DS_Store
+
+# Ignore local build outputs; Vercel will build in the cloud
+front/dist
+
+# Backend files need to be included for API functions
+*.db
+uv.lock
+.python-version
+README.md
+
+# Git metadata
+.git/
