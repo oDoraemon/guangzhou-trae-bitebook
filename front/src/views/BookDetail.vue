@@ -54,6 +54,17 @@ async function onDelete() {
     ElMessage.error(e?.message || '删除失败')
   }
 }
+
+async function onAnalyze() {
+  if (!book.value) return
+  try {
+    const res = await fetch(`${API_BASE}/api/books/${book.value.id}/analyze`, { method: 'POST' })
+    if (!res.ok) throw new Error(await res.text())
+    ElMessage.success('分析任务已启动')
+  } catch (e: any) {
+    ElMessage.error(e?.message || '分析任务启动失败')
+  }
+}
 </script>
 
 <template>
@@ -94,6 +105,9 @@ async function onDelete() {
                   <span v-if="book.task_pages_count">（页数：{{ book.task_pages_count }}）</span>
                 </el-descriptions-item>
               </el-descriptions>
+              <div class="actions">
+                <el-button type="primary" @click="onAnalyze">分析</el-button>
+              </div>
             </el-card>
           </div>
         </div>
@@ -117,7 +131,7 @@ async function onDelete() {
 .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
 .thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
-
+.actions { margin-top: 12px; display: flex; gap: 8px; }
 @media (max-width: 960px) {
   .detail-grid { grid-template-columns: 60% 40%; gap: 12px; }
 }

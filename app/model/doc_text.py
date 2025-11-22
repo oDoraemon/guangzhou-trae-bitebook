@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db import Base
@@ -14,5 +14,9 @@ class DocText(Base):
     text = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    book = relationship("Book")
+    bbox_x = Column(Float, nullable=True)
+    bbox_y = Column(Float, nullable=True)
+    bbox_w = Column(Float, nullable=True)
+    bbox_h = Column(Float, nullable=True)
 
+    book = relationship("Book")

@@ -13,6 +13,7 @@ from sqlalchemy import text
 from app.model.task_log import TaskLog
 from app.model.book_meta import BookMeta
 from app.model.doc_text import DocText
+from app.model.analysis_item import AnalysisItem
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, docs_url=None, redoc_url=None)
@@ -57,6 +58,10 @@ def seed_data():
         for name, ddl in [("cover_file", "TEXT"), ("cover_mime", "TEXT"), ("cover_width", "INTEGER"), ("cover_height", "INTEGER")]:
             if name not in cols:
                 conn.execute(text(f"ALTER TABLE book_meta ADD COLUMN {name} {ddl}"))
+        cols_dt = [row[1] for row in conn.execute(text("PRAGMA table_info('doc_text')"))]
+        for name, ddl in [("bbox_x", "REAL"), ("bbox_y", "REAL"), ("bbox_w", "REAL"), ("bbox_h", "REAL")]:
+            if name not in cols_dt:
+                conn.execute(text(f"ALTER TABLE doc_text ADD COLUMN {name} {ddl}"))
     db = SessionLocal()
     try:
         exists = db.execute(select(Book)).scalars().first()

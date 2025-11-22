@@ -10,3 +10,5 @@ class DocTextRepository:
             db.refresh(e)
         return entries
 
+    def list_by_book(self, db: Session, book_id: int) -> List[DocText]:
+        return db.query(DocText).filter(DocText.book_id == book_id).order_by(DocText.page_number.asc()).all()
