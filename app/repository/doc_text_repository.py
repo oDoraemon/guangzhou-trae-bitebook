@@ -12,3 +12,7 @@ class DocTextRepository:
 
     def list_by_book(self, db: Session, book_id: int) -> List[DocText]:
         return db.query(DocText).filter(DocText.book_id == book_id).order_by(DocText.page_number.asc()).all()
+
+    def list_range_by_book(self, db: Session, book_id: int, start: int, limit: int) -> List[DocText]:
+        q = db.query(DocText).filter(DocText.book_id == book_id).order_by(DocText.page_number.asc(), DocText.id.asc())
+        return q.offset(start).limit(limit).all()

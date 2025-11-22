@@ -12,12 +12,18 @@ from app.model.doc_text import DocText
 from app.repository.analysis_item_repository import AnalysisItemRepository
 from app.model.analysis_item import AnalysisItem
 from app.service.ai_client import ask_ai
+from app.repository.question_repository import QuestionRepository
+from app.repository.explanation_repository import ExplanationRepository
+from app.model.question import Question
+from app.model.explanation import Explanation
 
 class TaskService:
     def __init__(self, repo: Optional[TaskLogRepository] = None, text_repo: Optional[DocTextRepository] = None, analysis_repo: Optional[AnalysisItemRepository] = None):
         self.repo = repo or TaskLogRepository()
         self.text_repo = text_repo or DocTextRepository()
         self.analysis_repo = analysis_repo or AnalysisItemRepository()
+        self.question_repo = QuestionRepository()
+        self.expl_repo = ExplanationRepository()
 
     def queue_split_pdf(self, db: Session, book_id: int, file_name: str, file_path: str, output_dir: Path) -> TaskLog:
         t = TaskLog(
@@ -129,13 +135,17 @@ class TaskService:
             return
         try:
             task = self.repo.update(db, task, {"status": "running", "started_at": datetime.utcnow()})
-            texts = self.text_repo.list_by_book(db, task.book_id)
-            ai_items = ask_ai(texts)
-            items = []
+            ai_items = ask_ai(task.book_id, db)
+            qs = []
             for it in ai_items:
-                items.append(AnalysisItem(book_id=task.book_id, doc_text_id=it.get("doc_text_id"), page_number=it.get("page_number"), question=it.get("question"), answer=it.get("answer"), provider=it.get("provider"), model=it.get("model")))
-            if items:
-                self.analysis_repo.bulk_create(db, items)
+                qs.append(Question(book_id=task.book_id, doc_text_id=it.get("doc_text_id"), page_number=it.get("page_number"), text=it.get("question")))
+            if qs:
+                qs = self.question_repo.bulk_create(db, qs)
+                exps = []
+                for q, it in zip(qs, ai_items):
+                    exps.append(Explanation(question_id=q.id, text=it.get("answer"), provider=it.get("provider"), model=it.get("model")))
+                if exps:
+                    self.expl_repo.bulk_create(db, exps)
             self.repo.update(db, task, {"status": "done", "finished_at": datetime.utcnow(), "pages_count": None})
         except Exception as e:
             self.repo.update(db, task, {"status": "failed", "finished_at": datetime.utcnow(), "message": str(e)})

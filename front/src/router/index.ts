@@ -5,6 +5,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/books' },
   { path: '/books', name: 'BooksList', component: () => import('../views/BooksList.vue') },
   { path: '/books/:id', name: 'BookDetail', component: () => import('../views/BookDetail.vue') },
+  { path: '/books/:id/questions', name: 'BookQuestions', component: () => import('../views/BookQuestions.vue') },
 ]
 
 export const router = createRouter({

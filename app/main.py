@@ -14,6 +14,8 @@ from app.model.task_log import TaskLog
 from app.model.book_meta import BookMeta
 from app.model.doc_text import DocText
 from app.model.analysis_item import AnalysisItem
+from app.model.question import Question
+from app.model.explanation import Explanation
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, docs_url=None, redoc_url=None)

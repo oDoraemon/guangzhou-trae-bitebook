@@ -107,6 +107,7 @@ async function onAnalyze() {
               </el-descriptions>
               <div class="actions">
                 <el-button type="primary" @click="onAnalyze">分析</el-button>
+                <el-button :disabled="book?.task_status!=='done'" @click="router.push(`/books/${book?.id}/questions`)">提问</el-button>
               </div>
             </el-card>
           </div>
