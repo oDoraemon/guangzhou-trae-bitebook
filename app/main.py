@@ -5,17 +5,21 @@ from pathlib import Path
 from app.api.books import router as books_router
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
-from app.db import SessionLocal
+from app.db import SessionLocal, engine
 from app.model.book import Book
+from app.api.upload import router as upload_router
+from app.config import get_settings
+from sqlalchemy import text
 
-app = FastAPI(title="BiteBook API", docs_url=None, redoc_url=None)
+settings = get_settings()
+app = FastAPI(title=settings.app_name, docs_url=None, redoc_url=None)
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/static", StaticFiles(directory=str(settings.static_dir)), name="static")
+app.mount("/covers", StaticFiles(directory=str(settings.covers_dir)), name="covers")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,8 +30,8 @@ def custom_swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url=app.openapi_url,
         title="BiteBook API Docs",
-        swagger_css_url="/static/swagger-ui/swagger-ui.min.css",
-        swagger_js_url="/static/swagger-ui/swagger-ui-bundle.js",
+        swagger_css_url=settings.swagger_css,
+        swagger_js_url=settings.swagger_js,
         swagger_ui_parameters={"persistAuthorization": True},
     )
 
@@ -36,13 +40,19 @@ def redoc_html():
     return get_redoc_html(
         openapi_url=app.openapi_url,
         title="BiteBook API ReDoc",
-        redoc_js_url="/static/redoc/redoc.standalone.js",
+        redoc_js_url=settings.redoc_js,
     )
 
 app.include_router(books_router)
+app.include_router(upload_router)
 
 @app.on_event("startup")
 def seed_data():
+    with engine.begin() as conn:
+        cols = [row[1] for row in conn.execute(text("PRAGMA table_info('book_meta')"))]
+        for name, ddl in [("cover_file", "TEXT"), ("cover_mime", "TEXT"), ("cover_width", "INTEGER"), ("cover_height", "INTEGER")]:
+            if name not in cols:
+                conn.execute(text(f"ALTER TABLE book_meta ADD COLUMN {name} {ddl}"))
     db = SessionLocal()
     try:
         exists = db.execute(select(Book)).scalars().first()

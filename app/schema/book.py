@@ -20,7 +20,7 @@ class BookUpdate(BaseModel):
 
 class BookRead(BookBase):
     id: int
+    cover_url: Optional[str] = None
 
     class Config:
         from_attributes = True
-

@@ -14,11 +14,11 @@ class BookRepository:
         return db.get(Book, book_id)
 
     def list(self, db: Session, q: Optional[str], offset: int, limit: int) -> Tuple[List[Book], int]:
-        stmt = select(Book)
+        stmt = select(Book).order_by(Book.created_at.desc())
         count_stmt = select(Book)
         if q:
             pattern = f"%{q}%"
-            stmt = stmt.where(or_(Book.title.like(pattern), Book.author.like(pattern), Book.isbn.like(pattern)))
+            stmt = stmt.where(or_(Book.title.like(pattern), Book.author.like(pattern), Book.isbn.like(pattern))).order_by(Book.created_at.desc())
             count_stmt = count_stmt.where(or_(Book.title.like(pattern), Book.author.like(pattern), Book.isbn.like(pattern)))
         total = db.execute(count_stmt).unique().scalars().all()
         items = db.execute(stmt.offset(offset).limit(limit)).unique().scalars().all()
@@ -39,4 +39,3 @@ class BookRepository:
     def get_by_isbn(self, db: Session, isbn: str) -> Optional[Book]:
         stmt = select(Book).where(Book.isbn == isbn)
         return db.execute(stmt).scalars().first()
-
