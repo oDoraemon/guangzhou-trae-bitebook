@@ -2,9 +2,6 @@
 
 <template>
   <div class="layout">
-    <header class="header">
-      <a class="title" href="/books">BiteBook</a>
-    </header>
     <main class="main">
       <div class="content">
         <router-view />

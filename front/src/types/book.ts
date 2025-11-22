@@ -6,6 +6,7 @@ export interface Book {
   published_year?: number | null
   isbn?: string | null
   cover_url?: string | null
+  preview_images?: string[] | null
 }
 
 export interface BookListResponse {
